@@ -1,0 +1,40 @@
+name: Deploy_Paper_Frontend
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login Docker
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+            --build-arg VITE_API_BASE_URL="/api" \
+            -t inspire2002/paper_frontend:latest .
+
+      - name: Push Docker Image
+        run: docker push inspire2002/paper_frontend:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull Docker Image
+        run: docker pull inspire2002/paper_frontend:latest
+
+      - name: Remove old
+        run: docker rm -f paper_frontend_app || true
+
+      - name: Run container
+        run: |
+          docker run -d \
+            -p 4001:80 \
+            --name paper_frontend_app \
+            inspire2002/paper_frontend:latest
