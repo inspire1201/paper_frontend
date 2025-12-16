@@ -164,7 +164,7 @@ const ByCaste: React.FC = () => {
                                 </svg>
                                 Search & Filter
                             </h2>
-                            <p className="text-blue-100 text-sm mt-1">Search for castes and apply filters</p>
+                            <p className="text-blue-100 text-sm mt-1">Search filters automatically - Apply other filters manually</p>
                         </div>
 
                         <div className="p-6 space-y-5">
@@ -178,7 +178,10 @@ const ByCaste: React.FC = () => {
                                         type="text"
                                         placeholder="Search caste..."
                                         value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onChange={(e) => {
+                                            setSearchTerm(e.target.value);
+                                            setAppliedSearchTerm(e.target.value); // Auto-apply search
+                                        }}
                                         className="w-full px-3 py-1.5 pl-8 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
                                     />
                                     <svg className="w-4 h-4 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,8 +298,7 @@ const ByCaste: React.FC = () => {
                                 {/* Apply Filters Button */}
                                 <button
                                     onClick={() => {
-                                        // Apply current input values to applied state
-                                        setAppliedSearchTerm(searchTerm);
+                                        // Apply current filter values to applied state (search is auto-applied)
                                         setAppliedFilterType(filterType);
                                         setAppliedTopN(topN);
                                         setAppliedRangeMin(rangeMin);
