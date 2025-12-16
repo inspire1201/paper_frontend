@@ -16,7 +16,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            --build-arg VITE_API_BASE_URL="/api" \
+            --build-arg VITE_API_BASE_URL="/api/v1" \
             -t inspire2002/paper_frontend:latest .
 
       - name: Push Docker Image
