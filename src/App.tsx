@@ -1,12 +1,12 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Login3 from "./Pages/Login3";
 import Home from "./Pages/Home";
-import CategorySearch from "./Pages/CategorySearch";
-import CasteSearch from "./Pages/CasteSearch";
+import CategorySearch from "./Pages/InArea/CategorySearch";
+import CasteSearch from "./Pages/InArea/CasteSearch";
 import SurnameSimilarSearch from "./Pages/InArea/SurnameSimilarSearch";
-import BySurname from "./Pages/InArea/BySurname";
-import ByCaste from "./Pages/InArea/ByCaste";
-import ByCategory from "./Pages/InArea/ByCategory";
+import BySurname from "./Pages/searchArea/BySurname";
+import ByCaste from "./Pages/searchArea/ByCaste";
+import ByCategory from "./Pages/searchArea/ByCategory";
 import { Toaster } from "react-hot-toast";
 import PrivateRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";

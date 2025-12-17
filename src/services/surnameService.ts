@@ -124,6 +124,28 @@ class SurnameService {
         });
         return response.data;
     }
+
+    /**
+     * Get all categories by area (In Area - By Category)
+     * Returns all categories with their total counts
+     */
+    async getAllCategoriesByArea() {
+        const response = await apiClient.get('/surname/by-category/all');
+        return response.data;
+    }
+
+    /**
+     * Get assembly-wise distribution for a specific category
+     * @param categoryName - Name of the category
+     */
+    async getCategoryAssemblyDistribution(categoryName: string) {
+        const response = await apiClient.get('/surname/by-category/assembly', {
+            params: {
+                category: categoryName
+            }
+        });
+        return response.data;
+    }
 }
 
 export default new SurnameService();

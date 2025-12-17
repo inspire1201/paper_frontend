@@ -26,6 +26,7 @@ const SurnameSimilarSearch: React.FC = () => {
     const [selectAll, setSelectAll] = useState(false);
     const [results, setResults] = useState<AssemblyData[]>([]);
     const [loading, setLoading] = useState(false);
+    const [assemblyLoading, setAssemblyLoading] = useState(false);
     const [viewMode, setViewMode] = useState<'separate' | 'combined'>('separate');
     const [searchTerm, setSearchTerm] = useState(''); // Search filter for assemblies
     const [paginationState, setPaginationState] = useState<Record<number, number>>({}); // Track page for each assembly
@@ -43,6 +44,7 @@ const SurnameSimilarSearch: React.FC = () => {
     }, []);
 
     const fetchAssemblies = async () => {
+        setAssemblyLoading(true);
         try {
             const response = await surnameService.getAssemblies();
             if (response.success) {
@@ -51,6 +53,8 @@ const SurnameSimilarSearch: React.FC = () => {
         } catch (error) {
             console.error("Error fetching assemblies:", error);
             toast.error("Failed to load assemblies.");
+        } finally {
+            setAssemblyLoading(false);
         }
     };
 
@@ -238,7 +242,14 @@ const SurnameSimilarSearch: React.FC = () => {
 
                                             {/* Compact Assembly List */}
                                             <div className="max-h-48 overflow-y-auto space-y-1">
-                                                {filteredAssemblies.length > 0 ? filteredAssemblies.map((assembly) => (
+                                                {assemblyLoading ? (
+                                                    <div className="flex justify-center items-center py-8">
+                                                        <svg className="animate-spin h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                    </div>
+                                                ) : filteredAssemblies.length > 0 ? filteredAssemblies.map((assembly) => (
                                                     <label
                                                         key={assembly.id}
                                                         className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition text-sm ${selectedAssemblies.includes(assembly.assembly_id)

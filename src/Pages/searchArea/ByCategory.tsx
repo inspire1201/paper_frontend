@@ -3,8 +3,8 @@ import toast from 'react-hot-toast';
 import surnameService from '../../services/surnameService';
 import { useNavigate } from 'react-router-dom';
 
-interface CasteData {
-    caste_name: string;
+interface CategoryData {
+    category_name: string;
     total_count: number;
 }
 
@@ -16,21 +16,21 @@ interface AssemblyData {
 
 interface AssemblyResponse {
     success: boolean;
-    caste_name: string;
+    category_name: string;
     total_assemblies: number;
     total_count: number;
     data: AssemblyData[];
 }
 
-interface CasteResponse {
+interface CategoryResponse {
     success: boolean;
-    total_castes: number;
-    data: CasteData[];
+    total_categories: number;
+    data: CategoryData[];
 }
 
-const ByCaste: React.FC = () => {
+const ByCategory: React.FC = () => {
     const navigate = useNavigate();
-    const [castes, setCastes] = useState<CasteData[]>([]);
+    const [categories, setCategories] = useState<CategoryData[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -49,38 +49,38 @@ const ByCaste: React.FC = () => {
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
-    const [selectedCaste, setSelectedCaste] = useState<string>('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [assemblyData, setAssemblyData] = useState<AssemblyData[]>([]);
     const [modalLoading, setModalLoading] = useState(false);
     const [modalTotalCount, setModalTotalCount] = useState(0);
 
     useEffect(() => {
-        fetchAllCastes();
+        fetchAllCategories();
     }, []);
 
-    const fetchAllCastes = async () => {
+    const fetchAllCategories = async () => {
         setLoading(true);
         try {
-            const response: CasteResponse = await surnameService.getAllCastesByArea();
+            const response: CategoryResponse = await surnameService.getAllCategoriesByArea();
             if (response.success) {
-                setCastes(response.data);
-                toast.success(`Loaded ${response.total_castes} castes`);
+                setCategories(response.data);
+                toast.success(`Loaded ${response.total_categories} categories`);
             }
         } catch (error) {
-            console.error('Error fetching castes:', error);
-            toast.error('Failed to load caste data');
+            console.error('Error fetching categories:', error);
+            toast.error('Failed to load category data');
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchAssemblyData = async (casteName: string) => {
+    const fetchAssemblyData = async (categoryName: string) => {
         setModalLoading(true);
-        setSelectedCaste(casteName);
+        setSelectedCategory(categoryName);
         setShowModal(true);
 
         try {
-            const response: AssemblyResponse = await surnameService.getCasteAssemblyDistribution(casteName);
+            const response: AssemblyResponse = await surnameService.getCategoryAssemblyDistribution(categoryName);
 
             if (response.success) {
                 setAssemblyData(response.data);
@@ -97,12 +97,12 @@ const ByCaste: React.FC = () => {
     const closeModal = () => {
         setShowModal(false);
         setAssemblyData([]);
-        setSelectedCaste('');
+        setSelectedCategory('');
         setModalTotalCount(0);
     };
 
     // Apply filters using APPLIED values (not current input values)
-    const applyFilters = (data: CasteData[]): CasteData[] => {
+    const applyFilters = (data: CategoryData[]): CategoryData[] => {
         if (appliedFilterType === 'none') {
             return data;
         }
@@ -117,24 +117,24 @@ const ByCaste: React.FC = () => {
         if (appliedFilterType === 'range') {
             const min = parseInt(appliedRangeMin) || 0;
             const max = parseInt(appliedRangeMax) || Infinity;
-            return data.filter(caste => caste.total_count >= min && caste.total_count <= max);
+            return data.filter(category => category.total_count >= min && category.total_count <= max);
         }
 
         return data;
     };
 
-    // Filter castes based on APPLIED search term and filters
-    const searchFilteredCastes = castes.filter(caste =>
-        caste.caste_name.toLowerCase().includes(appliedSearchTerm.toLowerCase())
+    // Filter categories based on APPLIED search term and filters
+    const searchFilteredCategories = categories.filter(category =>
+        category.category_name.toLowerCase().includes(appliedSearchTerm.toLowerCase())
     );
 
-    const filteredCastes = applyFilters(searchFilteredCastes);
+    const filteredCategories = applyFilters(searchFilteredCategories);
 
     return (
         <div className="min-h-screen bg-gray-50 p-8">
             <div className="max-w-7xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6">
+                <div className="bg-gradient-to-r from-red-600 to-pink-600 p-6">
                     <div className="flex items-center justify-between">
                         <button
                             onClick={() => navigate(-1)}
@@ -146,8 +146,8 @@ const ByCaste: React.FC = () => {
                             <span className="text-sm font-medium">Back</span>
                         </button>
                         <div className="flex-1 text-center">
-                            <h1 className="text-3xl font-bold text-white">In Area - By Caste</h1>
-                            <p className="text-blue-100 mt-2">Click on any caste to see assembly-wise distribution</p>
+                            <h1 className="text-3xl font-bold text-white">Search Area - By Category</h1>
+                            <p className="text-red-100 mt-2">Click on any category to see assembly-wise distribution</p>
                         </div>
                         <div className="w-20"></div> {/* Spacer for centering */}
                     </div>
@@ -157,32 +157,32 @@ const ByCaste: React.FC = () => {
                     {/* Control Panel */}
                     <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                         {/* Panel Header */}
-                        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-4">
+                        <div className="bg-gradient-to-r from-red-600 to-pink-600 px-6 py-4">
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                                 </svg>
                                 Search & Filter
                             </h2>
-                            <p className="text-blue-100 text-sm mt-1">Search filters automatically - Apply other filters manually</p>
+                            <p className="text-red-100 text-sm mt-1">Search filters automatically - Apply other filters manually</p>
                         </div>
 
                         <div className="p-6 space-y-5">
                             {/* Search Input */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Search Caste
+                                    Search Category
                                 </label>
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="Search caste..."
+                                        placeholder="Search category..."
                                         value={searchTerm}
                                         onChange={(e) => {
                                             setSearchTerm(e.target.value);
                                             setAppliedSearchTerm(e.target.value); // Auto-apply search
                                         }}
-                                        className="w-full px-3 py-1.5 pl-8 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                                        className="w-full px-3 py-1.5 pl-8 text-sm border border-gray-300 rounded focus:border-red-500 focus:ring-1 focus:ring-red-200"
                                     />
                                     <svg className="w-4 h-4 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -201,7 +201,7 @@ const ByCaste: React.FC = () => {
                                     <button
                                         onClick={() => setFilterType('none')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded transition ${filterType === 'none'
-                                            ? 'bg-blue-600 text-white'
+                                            ? 'bg-red-600 text-white'
                                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                             }`}
                                     >
@@ -210,7 +210,7 @@ const ByCaste: React.FC = () => {
                                     <button
                                         onClick={() => setFilterType('top')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded transition ${filterType === 'top'
-                                            ? 'bg-blue-600 text-white'
+                                            ? 'bg-red-600 text-white'
                                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                             }`}
                                     >
@@ -219,7 +219,7 @@ const ByCaste: React.FC = () => {
                                     <button
                                         onClick={() => setFilterType('range')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded transition ${filterType === 'range'
-                                            ? 'bg-blue-600 text-white'
+                                            ? 'bg-red-600 text-white'
                                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                             }`}
                                     >
@@ -237,7 +237,7 @@ const ByCaste: React.FC = () => {
                                             onChange={(e) => setTopN(e.target.value)}
                                             min="1"
                                             placeholder="10"
-                                            className="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                                            className="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-red-500 focus:ring-1 focus:ring-red-200"
                                         />
                                         <span className="text-sm text-gray-600">records</span>
                                     </div>
@@ -253,7 +253,7 @@ const ByCaste: React.FC = () => {
                                             onChange={(e) => setRangeMin(e.target.value)}
                                             min="0"
                                             placeholder="Min (e.g., 1000)"
-                                            className="w-32 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                                            className="w-32 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-red-500 focus:ring-1 focus:ring-red-200"
                                         />
                                         <span className="text-sm text-gray-600">to</span>
                                         <input
@@ -262,7 +262,7 @@ const ByCaste: React.FC = () => {
                                             onChange={(e) => setRangeMax(e.target.value)}
                                             min="0"
                                             placeholder="Max (e.g., 5000)"
-                                            className="w-32 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                                            className="w-32 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-red-500 focus:ring-1 focus:ring-red-200"
                                         />
                                     </div>
                                 )}
@@ -305,7 +305,7 @@ const ByCaste: React.FC = () => {
                                         setAppliedRangeMax(rangeMax);
                                         toast.success('Filters applied successfully!');
                                     }}
-                                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition flex items-center gap-2"
+                                    className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition flex items-center gap-2"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -318,42 +318,41 @@ const ByCaste: React.FC = () => {
 
                     {/* Stats Badge */}
                     <div className="flex justify-end gap-4">
-
                         <div className="bg-gray-100 text-gray-800 py-2 px-6 rounded-full font-semibold">
-                            Total: {castes.length} castes
+                            Total: {categories.length} categories
                         </div>
                     </div>
 
-                    {/* Castes Table */}
+                    {/* Categories Table */}
                     {loading ? (
                         <div className="flex justify-center items-center py-12">
-                            <svg className="animate-spin h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <svg className="animate-spin h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                         </div>
-                    ) : filteredCastes.length > 0 ? (
+                    ) : filteredCategories.length > 0 ? (
                         <>
                             <div className="overflow-x-auto">
                                 <table className="min-w-full bg-white border border-gray-200 shadow-sm rounded-lg">
                                     <thead className="bg-gray-100 sticky top-0 z-10">
                                         <tr>
                                             <th className="py-3 px-6 text-left text-xs font-bold uppercase tracking-wider text-gray-700">SN</th>
-                                            <th className="py-3 px-6 text-left text-xs font-bold uppercase tracking-wider text-gray-700">Caste Name</th>
+                                            <th className="py-3 px-6 text-left text-xs font-bold uppercase tracking-wider text-gray-700">Category Name</th>
                                             <th className="py-3 px-6 text-right text-xs font-bold uppercase tracking-wider text-gray-700">Total Count</th>
                                             <th className="py-3 px-6 text-center text-xs font-bold uppercase tracking-wider text-gray-700">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
-                                        {filteredCastes.map((caste, index) => (
-                                            <tr key={index} className="hover:bg-blue-50 transition duration-150">
+                                        {filteredCategories.map((category, index) => (
+                                            <tr key={index} className="hover:bg-red-50 transition duration-150">
                                                 <td className="py-4 px-6 text-sm text-gray-500 font-mono">{index + 1}</td>
-                                                <td className="py-4 px-6 text-sm font-semibold text-gray-900">{caste.caste_name}</td>
-                                                <td className="py-4 px-6 text-sm text-right font-bold text-blue-700">{caste.total_count.toLocaleString()}</td>
+                                                <td className="py-4 px-6 text-sm font-semibold text-gray-900">{category.category_name}</td>
+                                                <td className="py-4 px-6 text-sm text-right font-bold text-red-700">{category.total_count.toLocaleString()}</td>
                                                 <td className="py-4 px-6 text-center">
                                                     <button
-                                                        onClick={() => fetchAssemblyData(caste.caste_name)}
-                                                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+                                                        onClick={() => fetchAssemblyData(category.category_name)}
+                                                        className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition"
                                                     >
                                                         View Assemblies
                                                     </button>
@@ -369,7 +368,7 @@ const ByCaste: React.FC = () => {
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            <p className="text-lg mt-4">No castes found</p>
+                            <p className="text-lg mt-4">No categories found</p>
                             <p className="text-sm mt-2">Try adjusting your search or filters</p>
                         </div>
                     )}
@@ -381,11 +380,11 @@ const ByCaste: React.FC = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
                         {/* Modal Header */}
-                        <div className="bg-gradient-to-r from-cyan-600 to-blue-600 p-6">
+                        <div className="bg-gradient-to-r from-pink-600 to-red-600 p-6">
                             <div className="flex justify-between items-center">
                                 <div>
                                     <h2 className="text-2xl font-bold text-white">Assembly Distribution</h2>
-                                    <p className="text-cyan-100 mt-1">Caste: {selectedCaste}</p>
+                                    <p className="text-pink-100 mt-1">Category: {selectedCategory}</p>
                                 </div>
                                 <button
                                     onClick={closeModal}
@@ -402,16 +401,16 @@ const ByCaste: React.FC = () => {
                         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
                             {modalLoading ? (
                                 <div className="flex justify-center items-center py-12">
-                                    <svg className="animate-spin h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </div>
                             ) : assemblyData.length > 0 ? (
                                 <>
-                                    <div className="mb-4 p-4 bg-cyan-50 rounded-lg border border-cyan-200">
+                                    <div className="mb-4 p-4 bg-pink-50 rounded-lg border border-pink-200">
                                         <p className="text-lg font-semibold text-gray-800">
-                                            Total Count: <span className="text-cyan-600">{modalTotalCount.toLocaleString()}</span>
+                                            Total Count: <span className="text-pink-600">{modalTotalCount.toLocaleString()}</span>
                                         </p>
                                     </div>
 
@@ -432,14 +431,14 @@ const ByCaste: React.FC = () => {
                                             </thead>
                                             <tbody className="divide-y divide-gray-200">
                                                 {assemblyData.map((assembly, idx) => (
-                                                    <tr key={idx} className="hover:bg-cyan-50 transition">
+                                                    <tr key={idx} className="hover:bg-pink-50 transition">
                                                         <td className="py-3 px-4 text-sm text-gray-500 font-mono">
                                                             {idx + 1}
                                                         </td>
                                                         <td className="py-3 px-4 text-sm font-medium text-gray-900">
                                                             {assembly.assembly_name}
                                                         </td>
-                                                        <td className="py-3 px-4 text-sm text-right font-bold text-cyan-600">
+                                                        <td className="py-3 px-4 text-sm text-right font-bold text-pink-600">
                                                             {assembly.count.toLocaleString()}
                                                         </td>
                                                     </tr>
@@ -469,4 +468,4 @@ const ByCaste: React.FC = () => {
     );
 };
 
-export default ByCaste;
+export default ByCategory;

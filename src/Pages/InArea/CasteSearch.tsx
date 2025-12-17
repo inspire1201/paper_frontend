@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import surnameService from '../services/surnameService';
+import surnameService from '../../services/surnameService';
 import { useNavigate } from 'react-router-dom';
 
 interface Assembly {
@@ -9,37 +9,36 @@ interface Assembly {
     assembly_name: string;
 }
 
-interface CategoryStat {
-    surname_category: string;
+interface CasteStat {
+    surname_caste: string;
     total_count: number;
-    total_cast: number;
+    total_similar: number;
 }
 
 interface AssemblyData {
     assembly: Assembly;
-    stats: CategoryStat[];
+    stats: CasteStat[];
 }
 
-interface CasteDetail {
-    caste_name: string;
+interface SurnameDetail {
+    surname_similar: string;
     count: number;
 }
 
-interface CasteDetailsResponse {
-    category: string;
-    total_castes: number;
-    castes: CasteDetail[];
+interface SurnameDetailsResponse {
+    caste: string;
+    total_surnames: number;
+    surnames: SurnameDetail[];
 }
 
-
-
-const CategorySearch: React.FC = () => {
+const CasteSearch: React.FC = () => {
     const navigate = useNavigate();
     const [assemblies, setAssemblies] = useState<Assembly[]>([]);
     const [selectedAssemblies, setSelectedAssemblies] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState(false);
     const [results, setResults] = useState<AssemblyData[]>([]);
     const [loading, setLoading] = useState(false);
+    const [assemblyLoading, setAssemblyLoading] = useState(false);
     const [viewMode, setViewMode] = useState<'separate' | 'combined'>('separate');
     const [searchTerm, setSearchTerm] = useState(''); // Search filter for assemblies
 
@@ -49,11 +48,11 @@ const CategorySearch: React.FC = () => {
     const [rangeMin, setRangeMin] = useState<string>('');
     const [rangeMax, setRangeMax] = useState<string>('');
 
-    // Caste details modal state
-    const [showCasteModal, setShowCasteModal] = useState(false);
-    const [casteDetails, setCasteDetails] = useState<CasteDetailsResponse | null>(null);
-    const [casteLoading, setCasteLoading] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<string>('');
+    // Surname details modal state
+    const [showSurnameModal, setShowSurnameModal] = useState(false);
+    const [surnameDetails, setSurnameDetails] = useState<SurnameDetailsResponse | null>(null);
+    const [surnameLoading, setSurnameLoading] = useState(false);
+    const [selectedCaste, setSelectedCaste] = useState<string>('');
     const [currentAssemblyParam, setCurrentAssemblyParam] = useState<string>(''); // Track current search params
 
     // Fetch Assemblies on load
@@ -62,6 +61,7 @@ const CategorySearch: React.FC = () => {
     }, []);
 
     const fetchAssemblies = async () => {
+        setAssemblyLoading(true);
         try {
             const response = await surnameService.getAssemblies();
             if (response.success) {
@@ -70,6 +70,8 @@ const CategorySearch: React.FC = () => {
         } catch (error) {
             console.error("Error fetching assemblies:", error);
             toast.error("Failed to load assemblies.");
+        } finally {
+            setAssemblyLoading(false);
         }
     };
 
@@ -87,7 +89,7 @@ const CategorySearch: React.FC = () => {
                 return;
             }
 
-            const data = await surnameService.getCategoryStats(assemblyParam, viewMode);
+            const data = await surnameService.getCasteStats(assemblyParam, viewMode);
 
             // Store the assembly param for use in modal
             setCurrentAssemblyParam(assemblyParam);
@@ -101,24 +103,24 @@ const CategorySearch: React.FC = () => {
             setResults(resultData);
 
             if (viewMode === 'combined') {
-                toast.success('Combined category data loaded successfully!');
+                toast.success('Combined caste data loaded successfully!');
             } else {
-                toast.success('Category statistics loaded successfully!');
+                toast.success('Caste statistics loaded successfully!');
             }
         } catch (error: any) {
-            console.error("Error fetching category stats:", error);
-            toast.error("Failed to load category statistics.");
+            console.error("Error fetching caste stats:", error);
+            toast.error("Failed to load caste statistics.");
         } finally {
             setLoading(false);
         }
     };
 
-    const getTotalCount = (stats: CategoryStat[]) => {
+    const getTotalCount = (stats: CasteStat[]) => {
         return stats.reduce((sum, stat) => sum + stat.total_count, 0);
     };
 
     // Apply filters to stats
-    const applyFilters = (stats: CategoryStat[]): CategoryStat[] => {
+    const applyFilters = (stats: CasteStat[]): CasteStat[] => {
         if (filterType === 'none') {
             return stats;
         }
@@ -140,10 +142,10 @@ const CategorySearch: React.FC = () => {
     };
 
 
-    const fetchCasteDetails = async (category: string, assemblyId?: number, assemblyIdsString?: string) => {
-        setCasteLoading(true);
-        setSelectedCategory(category);
-        setShowCasteModal(true);
+    const fetchSurnameDetails = async (caste: string, assemblyId?: number, assemblyIdsString?: string) => {
+        setSurnameLoading(true);
+        setSelectedCaste(caste);
+        setShowSurnameModal(true);
 
         try {
             // If assemblyIdsString is provided (combined view), use it
@@ -157,20 +159,20 @@ const CategorySearch: React.FC = () => {
                 assembly_param = assemblyId;
             }
 
-            const data = await surnameService.getCasteDetails(category, assembly_param as any);
-            setCasteDetails(data);
+            const data = await surnameService.getSurnameDetails(caste, assembly_param as any);
+            setSurnameDetails(data);
         } catch (error: any) {
-            console.error("Error fetching caste details:", error);
-            toast.error("Failed to load caste details.");
+            console.error("Error fetching surname details:", error);
+            toast.error("Failed to load surname details.");
         } finally {
-            setCasteLoading(false);
+            setSurnameLoading(false);
         }
     };
 
-    const closeCasteModal = () => {
-        setShowCasteModal(false);
-        setCasteDetails(null);
-        setSelectedCategory('');
+    const closeSurnameModal = () => {
+        setShowSurnameModal(false);
+        setSurnameDetails(null);
+        setSelectedCaste('');
     };
 
     // Filter assemblies based on search term
@@ -181,7 +183,7 @@ const CategorySearch: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50 p-8">
             <div className="max-w-7xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
+                <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6">
                     <div className="flex items-center justify-between">
                         <button
                             onClick={() => navigate(-1)}
@@ -192,7 +194,7 @@ const CategorySearch: React.FC = () => {
                             </svg>
                             <span className="text-sm font-medium">Back</span>
                         </button>
-                        <h1 className="text-3xl font-bold text-white flex-1 text-center">Category Search</h1>
+                        <h1 className="text-3xl font-bold text-white flex-1 text-center">Caste Search</h1>
                         <div className="w-20"></div> {/* Spacer for centering */}
                     </div>
                 </div>
@@ -201,14 +203,14 @@ const CategorySearch: React.FC = () => {
                     {/* Assembly Selection Section */}
                     <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                         {/* Header */}
-                        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+                        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-4">
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
                                 Select Assemblies
                             </h2>
-                            <p className="text-purple-100 text-sm mt-1">Choose one or more assemblies to view statistics</p>
+                            <p className="text-blue-100 text-sm mt-1">Choose one or more assemblies to view statistics</p>
                         </div>
 
                         <div className="p-6 space-y-5">
@@ -226,10 +228,10 @@ const CategorySearch: React.FC = () => {
                                                 setSelectedAssemblies([]);
                                             }
                                         }}
-                                        className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
+                                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                                     />
                                     <label htmlFor="selectAll" className="text-sm font-semibold text-gray-900 cursor-pointer flex items-center gap-2">
-                                        <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                                             <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                         </svg>
@@ -272,7 +274,7 @@ const CategorySearch: React.FC = () => {
                                                     placeholder="Search assemblies..."
                                                     value={searchTerm}
                                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                                    className="w-full px-3 py-1.5 pl-8 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                                                    className="w-full px-3 py-1.5 pl-8 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
                                                 />
                                                 <svg className="w-4 h-4 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -281,11 +283,18 @@ const CategorySearch: React.FC = () => {
 
                                             {/* Compact Assembly List */}
                                             <div className="max-h-48 overflow-y-auto space-y-1">
-                                                {filteredAssemblies.length > 0 ? filteredAssemblies.map((assembly) => (
+                                                {assemblyLoading ? (
+                                                    <div className="flex justify-center items-center py-8">
+                                                        <svg className="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                    </div>
+                                                ) : filteredAssemblies.length > 0 ? filteredAssemblies.map((assembly) => (
                                                     <label
                                                         key={assembly.id}
                                                         className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition text-sm ${selectedAssemblies.includes(assembly.assembly_id)
-                                                            ? 'bg-purple-100 text-purple-900'
+                                                            ? 'bg-blue-100 text-blue-900'
                                                             : 'hover:bg-gray-100'
                                                             }`}
                                                     >
@@ -299,7 +308,7 @@ const CategorySearch: React.FC = () => {
                                                                     setSelectedAssemblies(selectedAssemblies.filter(id => id !== assembly.assembly_id));
                                                                 }
                                                             }}
-                                                            className="w-3.5 h-3.5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                                            className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                                         />
                                                         <span className="flex-1">{assembly.assembly_name}</span>
                                                     </label>
@@ -316,12 +325,12 @@ const CategorySearch: React.FC = () => {
 
                             {/* Selected Count Badge */}
                             {!selectAll && selectedAssemblies.length > 0 && (
-                                <div className="flex items-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                                    <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
-                                    <span className="text-sm font-semibold text-purple-900">
-                                        <span className="text-purple-600 text-lg">{selectedAssemblies.length}</span> {selectedAssemblies.length === 1 ? 'assembly' : 'assemblies'} selected
+                                    <span className="text-sm font-semibold text-blue-900">
+                                        <span className="text-blue-600 text-lg">{selectedAssemblies.length}</span> {selectedAssemblies.length === 1 ? 'assembly' : 'assemblies'} selected
                                     </span>
                                 </div>
                             )}
@@ -337,7 +346,7 @@ const CategorySearch: React.FC = () => {
                                     <button
                                         onClick={() => setFilterType('none')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded transition ${filterType === 'none'
-                                            ? 'bg-purple-600 text-white'
+                                            ? 'bg-blue-600 text-white'
                                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                             }`}
                                     >
@@ -346,7 +355,7 @@ const CategorySearch: React.FC = () => {
                                     <button
                                         onClick={() => setFilterType('top')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded transition ${filterType === 'top'
-                                            ? 'bg-purple-600 text-white'
+                                            ? 'bg-blue-600 text-white'
                                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                             }`}
                                     >
@@ -355,7 +364,7 @@ const CategorySearch: React.FC = () => {
                                     <button
                                         onClick={() => setFilterType('range')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded transition ${filterType === 'range'
-                                            ? 'bg-purple-600 text-white'
+                                            ? 'bg-blue-600 text-white'
                                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                             }`}
                                     >
@@ -373,7 +382,7 @@ const CategorySearch: React.FC = () => {
                                             onChange={(e) => setTopN(e.target.value)}
                                             min="1"
                                             placeholder="10"
-                                            className="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                                            className="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
                                         />
                                         <span className="text-sm text-gray-600">records</span>
                                     </div>
@@ -389,7 +398,7 @@ const CategorySearch: React.FC = () => {
                                             onChange={(e) => setRangeMin(e.target.value)}
                                             min="0"
                                             placeholder="Min (e.g., 1000)"
-                                            className="w-32 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                                            className="w-32 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
                                         />
                                         <span className="text-sm text-gray-600">to</span>
                                         <input
@@ -398,7 +407,7 @@ const CategorySearch: React.FC = () => {
                                             onChange={(e) => setRangeMax(e.target.value)}
                                             min="0"
                                             placeholder="Max (e.g., 5000)"
-                                            className="w-32 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                                            className="w-32 px-3 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
                                         />
                                     </div>
                                 )}
@@ -414,7 +423,7 @@ const CategorySearch: React.FC = () => {
                                         <button
                                             onClick={() => setViewMode('separate')}
                                             className={`px-3 py-1.5 text-sm font-medium rounded transition ${viewMode === 'separate'
-                                                ? 'bg-purple-600 text-white'
+                                                ? 'bg-blue-600 text-white'
                                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                                 }`}
                                         >
@@ -423,7 +432,7 @@ const CategorySearch: React.FC = () => {
                                         <button
                                             onClick={() => setViewMode('combined')}
                                             className={`px-3 py-1.5 text-sm font-medium rounded transition ${viewMode === 'combined'
-                                                ? 'bg-purple-600 text-white'
+                                                ? 'bg-blue-600 text-white'
                                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                                 }`}
                                         >
@@ -438,7 +447,7 @@ const CategorySearch: React.FC = () => {
                                 <button
                                     onClick={handleSearch}
                                     disabled={loading || (!selectAll && selectedAssemblies.length === 0)}
-                                    className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     {loading ? (
                                         <>
@@ -460,8 +469,8 @@ const CategorySearch: React.FC = () => {
                     {results.length > 0 && (
                         <div className="mt-8 border-t pt-6">
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-gray-800">Category Statistics</h2>
-                                <span className="bg-purple-100 text-purple-800 py-2 px-4 rounded-full font-semibold">
+                                <h2 className="text-2xl font-bold text-gray-800">Caste Statistics</h2>
+                                <span className="bg-blue-100 text-blue-800 py-2 px-4 rounded-full font-semibold">
                                     {results.length} Assembly/Assemblies
                                 </span>
                             </div>
@@ -474,13 +483,13 @@ const CategorySearch: React.FC = () => {
                                         className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
                                     >
                                         {/* Assembly Header */}
-                                        <div className="bg-gradient-to-r from-purple-500 to-indigo-500 p-4">
+                                        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-4">
                                             <div className="flex justify-between items-center">
                                                 <div>
                                                     <h3 className="text-xl font-bold text-white">
                                                         {assemblyData.assembly?.assembly_name || 'Unknown Assembly'}
                                                     </h3>
-                                                    <p className="text-purple-100 text-sm">
+                                                    <p className="text-blue-100 text-sm">
                                                         Assembly ID: {assemblyData.assembly?.assembly_id}
                                                     </p>
                                                 </div>
@@ -493,7 +502,7 @@ const CategorySearch: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {/* Category Table */}
+                                        {/* Caste Table */}
                                         <div className="p-4">
                                             <table className="min-w-full bg-white">
                                                 <thead className="bg-gray-100">
@@ -502,13 +511,13 @@ const CategorySearch: React.FC = () => {
                                                             SN
                                                         </th>
                                                         <th className="py-3 px-6 text-left text-xs font-bold uppercase tracking-wider text-gray-700">
-                                                            Category
+                                                            Caste
                                                         </th>
                                                         <th className="py-3 px-6 text-right text-xs font-bold uppercase tracking-wider text-gray-700">
                                                             Total Count
                                                         </th>
                                                         <th className="py-3 px-6 text-center text-xs font-bold uppercase tracking-wider text-gray-700">
-                                                            Total Caste Details
+                                                            Total Surname Details
                                                         </th>
                                                         <th className="py-3 px-6 text-right text-xs font-bold uppercase tracking-wider text-gray-700">
                                                             Percentage
@@ -521,14 +530,14 @@ const CategorySearch: React.FC = () => {
                                                         const percentage = ((stat.total_count / totalCount) * 100).toFixed(2);
 
                                                         return (
-                                                            <tr key={idx} className="hover:bg-purple-50 transition duration-150">
+                                                            <tr key={idx} className="hover:bg-blue-50 transition duration-150">
                                                                 <td className="py-4 px-6 text-sm text-gray-500 font-mono">
                                                                     {idx + 1}
                                                                 </td>
                                                                 <td className="py-4 px-6 text-sm font-semibold text-gray-900">
-                                                                    {stat.surname_category}
+                                                                    {stat.surname_caste}
                                                                 </td>
-                                                                <td className="py-4 px-6 text-sm text-right font-bold text-purple-700">
+                                                                <td className="py-4 px-6 text-sm text-right font-bold text-blue-700">
                                                                     {stat.total_count.toLocaleString()}
                                                                 </td>
                                                                 <td className="py-4 px-6 text-center">
@@ -537,21 +546,21 @@ const CategorySearch: React.FC = () => {
                                                                             // In combined view (assembly_id = 0), pass the original assembly param
                                                                             // In separate view, pass the specific assembly ID
                                                                             if (assemblyData.assembly?.assembly_id === 0) {
-                                                                                fetchCasteDetails(stat.surname_category, undefined, currentAssemblyParam);
+                                                                                fetchSurnameDetails(stat.surname_caste, undefined, currentAssemblyParam);
                                                                             } else {
-                                                                                fetchCasteDetails(stat.surname_category, assemblyData.assembly?.assembly_id);
+                                                                                fetchSurnameDetails(stat.surname_caste, assemblyData.assembly?.assembly_id);
                                                                             }
                                                                         }}
-                                                                        className="text-lg font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition cursor-pointer"
+                                                                        className="text-lg font-bold text-cyan-600 hover:text-cyan-800 hover:underline transition cursor-pointer"
                                                                     >
-                                                                        {stat.total_cast}
+                                                                        {stat.total_similar}
                                                                     </button>
                                                                 </td>
                                                                 <td className="py-4 px-6 text-sm text-right text-gray-600">
                                                                     <div className="flex items-center justify-end gap-2">
                                                                         <div className="w-24 bg-gray-200 rounded-full h-2">
                                                                             <div
-                                                                                className="bg-purple-600 h-2 rounded-full"
+                                                                                className="bg-blue-600 h-2 rounded-full"
                                                                                 style={{ width: `${percentage}%` }}
                                                                             ></div>
                                                                         </div>
@@ -587,25 +596,25 @@ const CategorySearch: React.FC = () => {
                                 />
                             </svg>
                             <p className="text-lg mt-4">No results yet.</p>
-                            <p className="text-sm mt-2">Select assemblies and click "Get Category Statistics" to view data.</p>
+                            <p className="text-sm mt-2">Select assemblies and click "Submit" to view data.</p>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Caste Details Modal */}
-            {showCasteModal && (
+            {/* Surname Details Modal */}
+            {showSurnameModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
                         {/* Modal Header */}
-                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6">
+                        <div className="bg-gradient-to-r from-cyan-600 to-blue-600 p-6">
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-white">Caste Details</h2>
-                                    <p className="text-indigo-100 mt-1">Category: {selectedCategory}</p>
+                                    <h2 className="text-2xl font-bold text-white">Surname Similar Details</h2>
+                                    <p className="text-cyan-100 mt-1">Caste: {selectedCaste}</p>
                                 </div>
                                 <button
-                                    onClick={closeCasteModal}
+                                    onClick={closeSurnameModal}
                                     className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition"
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -617,18 +626,18 @@ const CategorySearch: React.FC = () => {
 
                         {/* Modal Body */}
                         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-                            {casteLoading ? (
+                            {surnameLoading ? (
                                 <div className="flex justify-center items-center py-12">
-                                    <svg className="animate-spin h-10 w-10 text-purple-600" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </div>
-                            ) : casteDetails ? (
+                            ) : surnameDetails ? (
                                 <>
-                                    <div className="mb-4 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                                    <div className="mb-4 p-4 bg-cyan-50 rounded-lg border border-cyan-200">
                                         <p className="text-lg font-semibold text-gray-800">
-                                            Total Castes: <span className="text-indigo-600">{casteDetails.total_castes}</span>
+                                            Total Surnames: <span className="text-cyan-600">{surnameDetails.total_surnames}</span>
                                         </p>
                                     </div>
 
@@ -640,7 +649,7 @@ const CategorySearch: React.FC = () => {
                                                         SN
                                                     </th>
                                                     <th className="py-3 px-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 border-b">
-                                                        Caste Name
+                                                        Surname Similar
                                                     </th>
                                                     <th className="py-3 px-4 text-right text-xs font-bold uppercase tracking-wider text-gray-700 border-b">
                                                         Count
@@ -648,16 +657,16 @@ const CategorySearch: React.FC = () => {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-200">
-                                                {casteDetails.castes.map((caste, idx) => (
-                                                    <tr key={idx} className="hover:bg-indigo-50 transition">
+                                                {surnameDetails.surnames.map((surname, idx) => (
+                                                    <tr key={idx} className="hover:bg-cyan-50 transition">
                                                         <td className="py-3 px-4 text-sm text-gray-500 font-mono">
                                                             {idx + 1}
                                                         </td>
                                                         <td className="py-3 px-4 text-sm font-medium text-gray-900">
-                                                            {caste.caste_name}
+                                                            {surname.surname_similar}
                                                         </td>
-                                                        <td className="py-3 px-4 text-sm text-right font-bold text-indigo-600">
-                                                            {caste.count.toLocaleString()}
+                                                        <td className="py-3 px-4 text-sm text-right font-bold text-cyan-600">
+                                                            {surname.count.toLocaleString()}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -673,7 +682,7 @@ const CategorySearch: React.FC = () => {
                         {/* Modal Footer */}
                         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
                             <button
-                                onClick={closeCasteModal}
+                                onClick={closeSurnameModal}
                                 className="w-full px-4 py-2 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition"
                             >
                                 Close
@@ -686,4 +695,4 @@ const CategorySearch: React.FC = () => {
     );
 };
 
-export default CategorySearch;
+export default CasteSearch;

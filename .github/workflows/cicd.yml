@@ -17,14 +17,14 @@ jobs:
         run: |
           docker build \
             --build-arg VITE_API_BASE_URL="/api/v1" \
-            -t inspire2002/paper_frontend:latest .
+            -t inspire2002/paper_frontend:latest . 
 
-      - name: Push Docker Image
+      - name: Push Docker Image  
         run: docker push inspire2002/paper_frontend:latest
 
   deploy:
-    needs: build
-    runs-on: self-hosted
+    needs: build  
+    runs-on: self-hosted 
     steps:
       - name: Pull Docker Image
         run: docker pull inspire2002/paper_frontend:latest
