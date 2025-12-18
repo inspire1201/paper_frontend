@@ -179,6 +179,36 @@ const Home = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Additional Tools Section */}
+                <div className="mt-6">
+                    <div className="bg-white rounded-lg p-6 shadow border border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional button</h3>
+
+                        <div className="space-y-3">
+                            {/* Assembly Caste Detail */}
+                            <button
+                                onClick={() => navigate('/assembly-caste-detail')}
+                                className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 rounded-md transition text-left"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-900">Assembly Caste Detail</h4>
+                                        <p className="text-xs text-gray-500">View comprehensive assembly data</p>
+                                    </div>
+                                </div>
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     );

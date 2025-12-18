@@ -7,6 +7,7 @@ import SurnameSimilarSearch from "./Pages/InArea/SurnameSimilarSearch";
 import BySurname from "./Pages/searchArea/BySurname";
 import ByCaste from "./Pages/searchArea/ByCaste";
 import ByCategory from "./Pages/searchArea/ByCategory";
+import AssemblyCasteDetail from "./Pages/AssemblyCasteDetail";
 import { Toaster } from "react-hot-toast";
 import PrivateRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
@@ -73,6 +74,14 @@ const router = createBrowserRouter([
     element: (
       <PrivateRoute>
         <ByCategory />
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: "/assembly-caste-detail",
+    element: (
+      <PrivateRoute>
+        <AssemblyCasteDetail />
       </PrivateRoute>
     ),
   }

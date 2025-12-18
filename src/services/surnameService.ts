@@ -146,6 +146,16 @@ class SurnameService {
         });
         return response.data;
     }
+
+    /**
+     * Get all assembly caste detail data
+     * Returns comprehensive statistics for all assemblies
+     */
+    async getAllAssemblyCasteDetail() {
+        const response = await apiClient.get('/surname/assembly-caste-detail');
+        return response.data;
+    }
+
 }
 
 export default new SurnameService();
