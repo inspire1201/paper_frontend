@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-package-lock.json
+# package-lock.json - Keep this for Docker builds with npm ci
 yarn.lock
 pnpm-lock.yaml
 
