@@ -7,6 +7,7 @@ const Typography = React.lazy(() => import('./views/theme/typography/Typography'
 // Pages
 const Home = React.lazy(() => import('./Pages/Home'))
 const SurnameDashboard = React.lazy(() => import('./Pages/SurnameDashboard'))
+const StateResultDashboard = React.lazy(() => import('./Pages/StateResultDashboard'))
 const AssemblyCasteDetail = React.lazy(() => import('./Pages/AssemblyCasteDetail'))
 const SurnameSimilarSearch = React.lazy(() => import('./Pages/InArea/SurnameSimilarSearch'))
 const CasteSearch = React.lazy(() => import('./Pages/InArea/CasteSearch'))
@@ -68,7 +69,9 @@ const UserList = React.lazy(() => import('./views/users/UserList'))
 const routes = [
   { path: '/', exact: true, name: 'Home', element: Home },
   { path: '/dashboard', name: 'Dashboard', element: Home }, // Use new Home for dashboard route too
+  { path: '/home', name: 'Home', element: Home },
   { path: '/surname-dashboard', name: 'Surname Dashboard', element: SurnameDashboard },
+  { path: '/state-result-dashboard', name: 'State Result Dashboard', element: StateResultDashboard },
   { path: '/assembly-caste-detail', name: 'Assembly Caste Detail', element: AssemblyCasteDetail },
   { path: '/surname-similar-search', name: 'Surname Search', element: SurnameSimilarSearch },
   { path: '/caste-search', name: 'Caste Search', element: CasteSearch },
