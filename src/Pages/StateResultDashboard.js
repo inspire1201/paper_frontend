@@ -30,9 +30,18 @@ import bjpResultsService from '../services/bjpResultsService'
 const StateResultDashboard = () => {
     const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState(1)
+    const [chartType, setChartType] = useState('assembly') // 'assembly' or 'parliament'
     const [bjpResults, setBjpResults] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+
+    // Track window resize for responsive chart options
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     // Fetch BJP results on component mount
     useEffect(() => {
@@ -58,8 +67,8 @@ const StateResultDashboard = () => {
         }
     }
 
-    // Process data for line chart - Separate AC and PC lines
-    const processDataForLineChart = () => {
+    // Process data for line chart - Based on selected chart type
+    const processDataForLineChart = (type = 'assembly') => {
         if (!bjpResults || bjpResults.length === 0) {
             return {
                 labels: [],
@@ -72,54 +81,63 @@ const StateResultDashboard = () => {
         const sortedYears = Array.from(allYearsSet).sort((a, b) => parseInt(a) - parseInt(b));
 
         // Helper to get seats by year and type
-        const getSeats = (year, type, partyField) => {
+        const getSeats = (year, electionType, partyField) => {
             const match = bjpResults.find(r =>
                 r.election_year?.toString() === year &&
-                (r.election_type?.toLowerCase().includes(type) || r.election_type?.toLowerCase() === (type === 'assembly' ? 'ac' : 'pc'))
+                (r.election_type?.toLowerCase().includes(electionType) || r.election_type?.toLowerCase() === (electionType === 'assembly' ? 'ac' : 'pc'))
             );
             return match ? match[partyField] || 0 : null; // null keeps gaps clean
         };
 
+        // Use party colors from doughnut chart
         return {
             labels: sortedYears,
             datasets: [
                 {
-                    label: 'BJP (Assembly)',
-                    data: sortedYears.map(y => getSeats(y, 'assembly', 'BJP_seats')),
-                    borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgb(54, 162, 235)',
+                    label: 'BJP',
+                    data: sortedYears.map(y => getSeats(y, type, 'BJP_seats')),
+                    borderColor: '#FF8C00',
+                    backgroundColor: '#FF8C00',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 5,
                     spanGaps: true,
                 },
                 {
-                    label: 'BJP (Parliament)',
-                    data: sortedYears.map(y => getSeats(y, 'parliament', 'BJP_seats')),
-                    borderColor: 'rgb(54, 162, 235)',
-                    borderDash: [6, 4], // Dashed line
-                    backgroundColor: 'rgb(54, 162, 235)',
+                    label: 'INC',
+                    data: sortedYears.map(y => getSeats(y, type, 'inc_seats')),
+                    borderColor: '#228B22',
+                    backgroundColor: '#228B22',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 5,
                     spanGaps: true,
                 },
                 {
-                    label: 'INC (Assembly)',
-                    data: sortedYears.map(y => getSeats(y, 'assembly', 'inc_seats')),
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgb(255, 99, 132)',
+                    label: 'BSP',
+                    data: sortedYears.map(y => getSeats(y, type, 'bsp_seats')),
+                    borderColor: '#4169E1',
+                    backgroundColor: '#4169E1',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 5,
                     spanGaps: true,
                 },
                 {
-                    label: 'INC (Parliament)',
-                    data: sortedYears.map(y => getSeats(y, 'parliament', 'inc_seats')),
-                    borderColor: 'rgb(255, 99, 132)',
-                    borderDash: [6, 4], // Dashed line
-                    backgroundColor: 'rgb(255, 99, 132)',
+                    label: 'JCCJ',
+                    data: sortedYears.map(y => getSeats(y, type, 'jcc_seats')),
+                    borderColor: '#FF69B4',
+                    backgroundColor: '#FF69B4',
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 5,
+                    spanGaps: true,
+                },
+                {
+                    label: 'OTHER',
+                    data: sortedYears.map(y => getSeats(y, type, 'other_seats')),
+                    borderColor: '#9370DB',
+                    backgroundColor: '#9370DB',
                     fill: false,
                     tension: 0.1,
                     pointRadius: 5,
@@ -149,7 +167,7 @@ const StateResultDashboard = () => {
     }
 
     const stats = calculateStats()
-    const pollStatisticsData = processDataForLineChart()
+    const pollStatisticsData = processDataForLineChart(chartType)
 
     // Statistics data
     const statsData = [
@@ -179,16 +197,33 @@ const StateResultDashboard = () => {
         },
     ]
 
-    // Function to check if BJP won (has maximum seats)
-    const isBjpWinner = (yearData) => {
-        if (!yearData) return false
-        const bjpSeats = yearData.BJP_seats || 0
-        const incSeats = yearData.inc_seats || 0
-        const bspSeats = yearData.bsp_seats || 0
-        const jccSeats = yearData.jcc_seats || 0
-        const otherSeats = yearData.other_seats || 0
+    // Party colors matching the doughnut chart
+    const partyColors = {
+        BJP: { bg: '#FF8C00', text: 'white' },
+        INC: { bg: '#228B22', text: 'white' },
+        BSP: { bg: '#87CEEB', text: 'white' },
+        JCCJ: { bg: '#FF69B4', text: 'white' },
+        OTHER: { bg: '#9370DB', text: 'white' }
+    }
 
-        return bjpSeats > incSeats && bjpSeats > bspSeats && bjpSeats > jccSeats && bjpSeats > otherSeats
+    // Function to get the winning party
+    const getWinningParty = (yearData) => {
+        if (!yearData) return null
+
+        const parties = [
+            { name: 'BJP', seats: yearData.BJP_seats || 0 },
+            { name: 'INC', seats: yearData.inc_seats || 0 },
+            { name: 'BSP', seats: yearData.bsp_seats || 0 },
+            { name: 'JCCJ', seats: yearData.jcc_seats || 0 },
+            { name: 'OTHER', seats: yearData.other_seats || 0 }
+        ]
+
+        // Find the party with maximum seats
+        const winner = parties.reduce((max, party) =>
+            party.seats > max.seats ? party : max
+            , parties[0])
+
+        return winner.seats > 0 ? winner : null
     }
 
     // Function to create doughnut chart data for each year
@@ -245,10 +280,17 @@ const StateResultDashboard = () => {
 
     const chartOptions = {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: windowWidth >= 768, // true on desktop (≥768px), false on mobile (<768px)
         plugins: {
             legend: {
                 position: 'top',
+                labels: {
+                    boxWidth: 15,
+                    padding: 10,
+                    font: {
+                        size: windowWidth < 768 ? 10 : 12 // Smaller font on mobile
+                    }
+                }
             },
             tooltip: {
                 mode: 'index',
@@ -260,7 +302,15 @@ const StateResultDashboard = () => {
                 display: true,
                 title: {
                     display: true,
-                    text: 'Election Year'
+                    text: 'Election Year',
+                    font: {
+                        size: windowWidth < 768 ? 10 : 12
+                    }
+                },
+                ticks: {
+                    font: {
+                        size: windowWidth < 768 ? 9 : 11
+                    }
                 }
             },
             y: {
@@ -268,7 +318,15 @@ const StateResultDashboard = () => {
                 beginAtZero: true,
                 title: {
                     display: true,
-                    text: 'Seats Won'
+                    text: 'Seats Won',
+                    font: {
+                        size: windowWidth < 768 ? 10 : 12
+                    }
+                },
+                ticks: {
+                    font: {
+                        size: windowWidth < 768 ? 9 : 11
+                    }
                 }
             },
         },
@@ -383,6 +441,12 @@ const StateResultDashboard = () => {
                                         />
                                     </div>
                                 }
+                                style={{ cursor: stat.title === 'Position Wise Analysis' ? 'pointer' : 'default' }}
+                                onClick={() => {
+                                    if (stat.title === 'Position Wise Analysis') {
+                                        navigate('/position-wise-analytics')
+                                    }
+                                }}
                             />
                         </CCol>
                     ))}
@@ -429,11 +493,37 @@ const StateResultDashboard = () => {
                 {/* Poll Statistics Chart */}
                 <CCard className="mb-4 shadow-sm">
                     <CCardHeader className="bg-white border-bottom">
-                        <h5 className="mb-0 fw-semibold text-primary">Poll Statistics</h5>
-                        <small className="text-muted">Historical election performance trends</small>
+                        <div className="d-flex justify-content-between align-items-center flex-wrap">
+                            <div>
+                                <h5 className="mb-0 fw-semibold text-primary">Poll Statistics</h5>
+                                <small className="text-muted">Historical election performance trends</small>
+                            </div>
+                            <div className="d-flex gap-2 mt-2 mt-md-0">
+                                <CButton
+                                    color={chartType === 'assembly' ? 'primary' : 'light'}
+                                    size="sm"
+                                    onClick={() => setChartType('assembly')}
+                                    className="fw-semibold"
+                                >
+                                    Assembly
+                                </CButton>
+                                <CButton
+                                    color={chartType === 'parliament' ? 'primary' : 'light'}
+                                    size="sm"
+                                    onClick={() => setChartType('parliament')}
+                                    className="fw-semibold"
+                                >
+                                    Parliament
+                                </CButton>
+                            </div>
+                        </div>
                     </CCardHeader>
-                    <CCardBody className="p-4">
-                        <div style={{ height: '400px' }}>
+                    <CCardBody className="p-2 p-md-4">
+                        <div style={{
+                            minHeight: windowWidth >= 768 ? '400px' : '250px',
+                            maxHeight: '600px',
+                            position: 'relative'
+                        }} className="w-100">
                             <CChartLine
                                 data={pollStatisticsData}
                                 options={chartOptions}
@@ -457,15 +547,25 @@ const StateResultDashboard = () => {
                                     <CCol xs={12} sm={6} md={4} key={index}>
                                         <CCard className="h-100 shadow-sm border-0">
                                             <CCardBody className="text-center p-4">
-                                                <div className="d-flex justify-content-center align-items-center mb-2">
+                                                <div className="d-flex justify-content-center align-items-center mb-2 flex-wrap">
                                                     <h6 className="mb-0 fw-bold text-primary" style={{ fontSize: '1rem' }}>
                                                         {result.election_year} {result.election_type || 'Election'}
                                                     </h6>
-                                                    {isBjpWinner(result) && (
-                                                        <span className="badge bg-success ms-2" style={{ fontSize: '0.7rem' }}>
-                                                            BJP WON
-                                                        </span>
-                                                    )}
+                                                    {(() => {
+                                                        const winner = getWinningParty(result)
+                                                        return winner && (
+                                                            <span
+                                                                className="badge ms-2"
+                                                                style={{
+                                                                    fontSize: '0.7rem',
+                                                                    backgroundColor: partyColors[winner.name].bg,
+                                                                    color: partyColors[winner.name].text
+                                                                }}
+                                                            >
+                                                                {winner.name} WON
+                                                            </span>
+                                                        )
+                                                    })()}
                                                 </div>
                                                 <div >
                                                     <CChartDoughnut
@@ -501,15 +601,25 @@ const StateResultDashboard = () => {
                                     <CCol xs={12} sm={6} md={4} key={index}>
                                         <CCard className="h-100 shadow-sm border-0">
                                             <CCardBody className="text-center p-4">
-                                                <div className="d-flex justify-content-center align-items-center mb-2">
+                                                <div className="d-flex justify-content-center align-items-center mb-2 flex-wrap">
                                                     <h6 className="mb-0 fw-bold text-primary" style={{ fontSize: '1rem' }}>
                                                         {result.election_year} {result.election_type || 'Election'}
                                                     </h6>
-                                                    {isBjpWinner(result) && (
-                                                        <span className="badge bg-success ms-2" style={{ fontSize: '0.7rem' }}>
-                                                            BJP WON
-                                                        </span>
-                                                    )}
+                                                    {(() => {
+                                                        const winner = getWinningParty(result)
+                                                        return winner && (
+                                                            <span
+                                                                className="badge ms-2"
+                                                                style={{
+                                                                    fontSize: '0.7rem',
+                                                                    backgroundColor: partyColors[winner.name].bg,
+                                                                    color: partyColors[winner.name].text
+                                                                }}
+                                                            >
+                                                                {winner.name} WON
+                                                            </span>
+                                                        )
+                                                    })()}
                                                 </div>
                                                 <div >
                                                     <CChartDoughnut

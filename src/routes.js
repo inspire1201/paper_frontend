@@ -8,6 +8,7 @@ const Typography = React.lazy(() => import('./views/theme/typography/Typography'
 const Home = React.lazy(() => import('./Pages/Home'))
 const SurnameDashboard = React.lazy(() => import('./Pages/SurnameDashboard'))
 const StateResultDashboard = React.lazy(() => import('./Pages/StateResultDashboard'))
+const PositionWiseAnalytics = React.lazy(() => import('./Pages/PositionWiseAnalytics'))
 const AssemblyCasteDetail = React.lazy(() => import('./Pages/AssemblyCasteDetail'))
 const SurnameSimilarSearch = React.lazy(() => import('./Pages/InArea/SurnameSimilarSearch'))
 const CasteSearch = React.lazy(() => import('./Pages/InArea/CasteSearch'))
@@ -72,6 +73,7 @@ const routes = [
   { path: '/home', name: 'Home', element: Home },
   { path: '/surname-dashboard', name: 'Surname Dashboard', element: SurnameDashboard },
   { path: '/state-result-dashboard', name: 'State Result Dashboard', element: StateResultDashboard },
+  { path: '/position-wise-analytics', name: 'Position Wise Analytics', element: PositionWiseAnalytics },
   { path: '/assembly-caste-detail', name: 'Assembly Caste Detail', element: AssemblyCasteDetail },
   { path: '/surname-similar-search', name: 'Surname Search', element: SurnameSimilarSearch },
   { path: '/caste-search', name: 'Caste Search', element: CasteSearch },
