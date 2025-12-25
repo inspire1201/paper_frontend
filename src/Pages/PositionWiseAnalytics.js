@@ -37,7 +37,6 @@ const PositionWiseAnalytics = () => {
         parliament: []
     })
     const [electionYears, setElectionYears] = useState([])
-    const totalSeats = 90 // Total number of seats
 
     // Modal state
     const [showModal, setShowModal] = useState(false)
@@ -140,7 +139,7 @@ const PositionWiseAnalytics = () => {
         }
     }
 
-    const renderTable = (data, title, electionType) => {
+    const renderTable = (data, title, electionType, totalSeats) => {
         return (
             <CCard className="mb-4 shadow-sm">
                 <CCardHeader className="bg-light">
@@ -155,14 +154,9 @@ const PositionWiseAnalytics = () => {
                                         className="text-center align-middle bg-light"
                                         style={{ width: '80px', fontWeight: '600' }}
                                     >
-                                        #
+                                        {activeTab}
                                     </CTableHeaderCell>
-                                    <CTableHeaderCell
-                                        className="text-center align-middle bg-info text-white"
-                                        style={{ fontWeight: '600' }}
-                                    >
-                                        No. of ACs
-                                    </CTableHeaderCell>
+
                                     {electionYears.map((year) => (
                                         <CTableHeaderCell
                                             key={year}
@@ -181,9 +175,9 @@ const PositionWiseAnalytics = () => {
                             <CTableBody>
                                 {/* Total Seats Row */}
                                 <CTableRow className="bg-info bg-opacity-10">
-                                    <CTableDataCell className="text-center fw-semibold"></CTableDataCell>
-                                    <CTableDataCell className="text-center fw-semibold">
-                                        {totalSeats}
+
+                                    <CTableDataCell className="text-center fw-semibold  ">
+                                        {electionType === 'AC' ? 'No. of ACs' : 'No. of PCs'}
                                     </CTableDataCell>
                                     {electionYears.map((year) => (
                                         <CTableDataCell key={year} className="text-center fw-semibold">
@@ -204,7 +198,7 @@ const PositionWiseAnalytics = () => {
                                         >
                                             {partyData.party}
                                         </CTableDataCell>
-                                        <CTableDataCell className="text-center">-</CTableDataCell>
+
                                         {electionYears.map((year) => {
                                             const value = partyData.years[year]
                                             return (
@@ -256,18 +250,18 @@ const PositionWiseAnalytics = () => {
     }
 
     const getYearLabel = (year) => {
-        // Determine election type from data
-        // If we have assembly data for this year, check if it's AC or PE
-        const assemblyEntry = positionData.assembly.find(p => p.years && p.years[year] !== undefined)
-        const parliamentEntry = positionData.parliament.find(p => p.years && p.years[year] !== undefined)
+        // Map years to their election types (AE = Assembly Election, PE = Parliament Election)
+        const yearElectionTypeMap = {
+            '2008': 'AE',
+            '2009': 'PE',
+            '2013': 'AE',
+            '2014': 'PE',
+            '2018': 'AE',
+            '2019': 'PE'
+        };
 
-        if (assemblyEntry && assemblyEntry.years[year] !== null) {
-            return `AE ${year}` // Assembly Election
-        } else if (parliamentEntry && parliamentEntry.years[year] !== null) {
-            return `PE ${year}` // Parliament Election
-        }
-
-        return `${year}`
+        const electionType = yearElectionTypeMap[year];
+        return electionType ? `${electionType} ${year}` : `${year}`;
     }
 
     if (loading) {
@@ -337,14 +331,16 @@ const PositionWiseAnalytics = () => {
                 {renderTable(
                     positionData.assembly,
                     `${getPositionSuffix()} Position - Assembly Constituency Wise`,
-                    'AC'
+                    'AC',
+                    90
                 )}
 
-                {/* Parliamentary Constituency Table */}
-                {renderTable(
+                {/* Parliamentary Constituency Table - Only show in 1st Position tab */}
+                {activeTab === 1 && renderTable(
                     positionData.parliament,
                     `${getPositionSuffix()} Position - Parliamentary Constituency Wise`,
-                    'PE'
+                    'PE',
+                    11
                 )}
 
                 {/* Pagination */}
@@ -390,11 +386,13 @@ const PositionWiseAnalytics = () => {
                                     <CTableHead>
                                         <CTableRow>
                                             <CTableHeaderCell className="text-center">#</CTableHeaderCell>
-                                            <CTableHeaderCell className="text-center">Assembly ID</CTableHeaderCell>
-                                            <CTableHeaderCell className="text-center">Assembly Name</CTableHeaderCell>
                                             <CTableHeaderCell className="text-center">
-                                                {modalInfo.electionType === 'AC' ? 'AE' : 'PE'} {modalInfo.year} - Party
+                                                {modalInfo.electionType === 'AC' ? 'Assembly ID' : 'Lok Sabha ID'}
                                             </CTableHeaderCell>
+                                            <CTableHeaderCell className="text-center">
+                                                {modalInfo.electionType === 'AC' ? 'Assembly Name' : 'Lok Sabha Name'}
+                                            </CTableHeaderCell>
+
                                         </CTableRow>
                                     </CTableHead>
                                     <CTableBody>
@@ -411,11 +409,19 @@ const PositionWiseAnalytics = () => {
                                             const columnName = yearColumnMap[modalInfo.year];
                                             const partyValue = row[columnName];
 
+                                            // Get constituency ID and name based on election type
+                                            const constituencyId = modalInfo.electionType === 'AC'
+                                                ? (row.assembly_id || row.ac_no)
+                                                : (row.lok_id || row.ac_no);
+                                            const constituencyName = modalInfo.electionType === 'AC'
+                                                ? (row.assembly_name || '-')
+                                                : (row.lok_name || '-');
+
                                             return (
                                                 <CTableRow key={index}>
                                                     <CTableDataCell className="text-center">{index + 1}</CTableDataCell>
-                                                    <CTableDataCell className="text-center fw-semibold">{row.assembly_id || row.ac_no}</CTableDataCell>
-                                                    <CTableDataCell className="text-start fw-semibold">{row.assembly_name || '-'}</CTableDataCell>
+                                                    <CTableDataCell className="text-center fw-semibold">{constituencyId}</CTableDataCell>
+                                                    <CTableDataCell className="text-start fw-semibold">{constituencyName}</CTableDataCell>
                                                     <CTableDataCell className="text-center">
                                                         <span
                                                             className="badge px-3 py-2"

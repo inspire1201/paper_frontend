@@ -444,7 +444,7 @@ const StateResultDashboard = () => {
                                 style={{ cursor: stat.title === 'Position Wise Analysis' ? 'pointer' : 'default' }}
                                 onClick={() => {
                                     if (stat.title === 'Position Wise Analysis') {
-                                        navigate('/position-wise-analytics')
+                                        navigate('/state-result-dashboard/position-wise-analytics')
                                     }
                                 }}
                             />

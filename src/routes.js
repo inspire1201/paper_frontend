@@ -73,6 +73,7 @@ const routes = [
   { path: '/home', name: 'Home', element: Home },
   { path: '/surname-dashboard', name: 'Surname Dashboard', element: SurnameDashboard },
   { path: '/state-result-dashboard', name: 'State Result Dashboard', element: StateResultDashboard },
+  { path: '/state-result-dashboard/position-wise-analytics', name: 'Position Wise Analytics', element: PositionWiseAnalytics },
   { path: '/position-wise-analytics', name: 'Position Wise Analytics', element: PositionWiseAnalytics },
   { path: '/assembly-caste-detail', name: 'Assembly Caste Detail', element: AssemblyCasteDetail },
   { path: '/surname-similar-search', name: 'Surname Search', element: SurnameSimilarSearch },
